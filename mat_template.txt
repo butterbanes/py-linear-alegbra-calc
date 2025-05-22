@@ -1,0 +1,14 @@
+Rows are seperated by a ; while columns are seperated by a space
+    or they can be presented as a the traditional typed out way
+
+When providing your matrix files, the program will search for semicolons
+    within your matrices. If a semicolon(s) are present, the program will
+    assume you mean to use the one-line representation instead of the visual
+    representation
+
+EXAMPLE (2x5 one-line):
+1 2 3 4 5; 6 7 8 9 10
+
+EXAMPLE (2x5 visually represented)
+1 2 3 4 5
+6 7 8 9 10

@@ -1,0 +1,4 @@
+# .gitignore for the la_calc_py project
+
+# ignore the venv
+venv/
