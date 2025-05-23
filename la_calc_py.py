@@ -1,7 +1,9 @@
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import sklearn as skl
 import sys
+from typing import Literal
 
 def menu() -> int:
     
@@ -39,10 +41,10 @@ def menu() -> int:
     return choice
 #-----------------------------------------------#
 
-def matrix_ops(choice:int, mat1:np.ndarray, mat2:np.ndarray):
+def matrix_ops(choice:int, mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]):
     match choice:
         case 0:
-            mat_add(mat1, mat2)
+            print(f"Mat_Add_Result:\n{mat_add(mat1, mat2)}")
         case 1:
             mat_sub(mat1, mat2)
         case 2:
@@ -71,20 +73,23 @@ def matrix_ops(choice:int, mat1:np.ndarray, mat2:np.ndarray):
 
 #-----------------------------------------------#
 
+def mat_add(mat1: npt.NDArray[np.float64], mat2: npt.NDArray[np.float64]) -> npt.NDArray[np.float128]:
+    mat_add_res:npt.NDArray[np.float128] = np.add(mat1, mat2)
+    return mat_add_res
+
 def mat_templ_example():
     with open("mat_template.txt") as mat_tp:
         print(mat_tp.read())
 
-def parse_matrix(in_mat_str:str, mode:str):
-    ret_arr = None
+def parse_matrix(in_mat_str: str, mode: Literal["ol", "vr"]) -> npt.NDArray[np.float64]:
     if mode == "ol":
-        ret_arr = np.array([list(map(int, row.strip().split())) 
-                            for row in in_mat_str.strip().split(';')])
+        return np.array(
+            [list(map(np.float64, row.strip().split())) for row in in_mat_str.strip().split(';')],
+            dtype=np.float64)
     elif mode == "vr":
-        ret_arr = np.array([list(map(int, line.split())) 
-                            for line in in_mat_str.strip().split('\n')])
-    return ret_arr
-
+        return np.array(
+            [list(map(np.float64, line.strip().split())) for line in in_mat_str.strip().split('\n')],
+            dtype=np.float64)
 
 def main():
     choice:int = menu()
@@ -93,8 +98,8 @@ def main():
     mat2_fn:str = input("Matrix #2 File Name: ")
     
     #populate the actual matrices via file contents
-    mat1 = np.array([], dtype=object)
-    mat2 = np.array([], dtype=object)
+    mat1:npt.NDArray[np.float64] = npt.NDArray[np.float64](np.array([], dtype=object))
+    mat2:npt.NDArray[np.float64] = npt.NDArray[np.float64](np.array([], dtype=object))
     with open(mat1_fn) as m1_f:
         temp_mat_str = m1_f.read()
         if ";" in temp_mat_str:
@@ -107,10 +112,6 @@ def main():
             mat2 = parse_matrix(temp_mat_str, "ol")
         elif ";" not in temp_mat_str:
             mat2 = parse_matrix(temp_mat_str, "vr")
-
-    print(mat1)
-    print(mat2)
-
     matrix_ops(choice, mat1, mat2)
 
 if __name__ == '__main__':
