@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import re as regex
 import sklearn as skl
 import sys
 from typing import Literal
@@ -23,7 +24,7 @@ def menu() -> int:
           "\n9:  Lower and Upper Triangle Decomposition",
           "\n10: Orthogonal Matrix and Upper Triangle Decomposition",
           "\n11: Singular Value Decomposition",
-          "\n12: View Matrix File Template",
+          "\n12: Refresher On Matrix File Layout",
           "\n-1: EXIT")
     print("---------------")
     
@@ -31,12 +32,13 @@ def menu() -> int:
     while choice < -1 or choice > 12:
         print("Invalid Choice | Try Again")
         choice:int = int(input("Enter your choice: "))
-    
+   
     if choice == -1:
         sys.exit(0)
-    
+
     if choice == 12:
         mat_templ_example()
+        choice = menu()
 
     return choice
 #-----------------------------------------------#
@@ -46,9 +48,9 @@ def matrix_ops(choice:int, mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.flo
         case 0:
             print(f"Mat_Add_Result:\n{mat_add(mat1, mat2)}")
         case 1:
-            mat_sub(mat1, mat2)
+            print(f"Matrix Subtraction Result:\n{mat_sub(mat1, mat2)}")
         case 2:
-            mat_mult(mat1, mat2)
+            print(f"Matrix Multiplication Result:\n{mat_mult(mat1, mat2)}")
         case 3:
             mat_transpose(mat1, mat2)
         case 4:
@@ -74,8 +76,24 @@ def matrix_ops(choice:int, mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.flo
 #-----------------------------------------------#
 
 def mat_add(mat1: npt.NDArray[np.float64], mat2: npt.NDArray[np.float64]) -> npt.NDArray[np.float128]:
+    if mat1.size != mat2.size:
+        print("ERR: to perform addition  on two matrices, they must be the same size")
+        sys.exit(1)
+
     mat_add_res:npt.NDArray[np.float128] = np.add(mat1, mat2)
     return mat_add_res
+
+def mat_sub(mat1: npt.NDArray[np.float64], mat2: npt.NDArray[np.float64]) -> npt.NDArray[np.float128]:
+    if mat1.size != mat2.size:
+        print("ERR: to perform subtraction on two matrices, they must be the same size")
+        sys.exit(1)
+
+    mat_sub_res:npt.NDArray[np.float128] = np.subtract(mat1, mat2)
+    return mat_sub_res
+
+def mat_mult(mat1: npt.NDArray[np.float64], mat2: npt.NDArray[np.float64]) -> npt.NDArray[np.float128]:
+    mat_mult_res:npt.NDArray[np.float128] = np.multiply(mat1, mat2)
+    return mat_mult_res
 
 def mat_templ_example():
     with open("mat_template.txt") as mat_tp:
@@ -92,7 +110,7 @@ def parse_matrix(in_mat_str: str, mode: Literal["ol", "vr"]) -> npt.NDArray[np.f
             dtype=np.float64)
 
 def main():
-    choice:int = menu()
+    mat_templ_example()
     print("Please enter your two matrix file names that are IN ROW MAJOR")
     mat1_fn:str = input("Matrix #1 File Name: ")
     mat2_fn:str = input("Matrix #2 File Name: ")
@@ -112,7 +130,40 @@ def main():
             mat2 = parse_matrix(temp_mat_str, "ol")
         elif ";" not in temp_mat_str:
             mat2 = parse_matrix(temp_mat_str, "vr")
-    matrix_ops(choice, mat1, mat2)
+    choice:int = menu()
+    answer:str = ""
+    while choice != -1: 
+        matrix_ops(choice, mat1, mat2)
+        answer = input("Continue with the same original matrices? [y/n]")
+        normalized:str = answer.strip().lower()
+        
+        while normalized not in ("y", "yes","n", "no"):           
+            print("ERR: Invalid input | try again")
+            answer = input("Continue with the same original matrices? [y/n]")
+            normalized = answer.strip().lower()
+
+        if normalized in ("n", "no"):
+            print("Please enter your two matrix file names that are IN ROW MAJOR")
+            mat1_fn:str = input("Matrix #1 File Name: ")
+            mat2_fn:str = input("Matrix #2 File Name: ")
+            with open(mat1_fn) as m1_f:
+                temp_mat_str = m1_f.read()
+                if ";" in temp_mat_str:
+                    mat1 = parse_matrix(temp_mat_str, "ol")
+                elif ";" not in temp_mat_str:
+                    mat1 = parse_matrix(temp_mat_str, "vr")
+            with open(mat2_fn) as m2_f:
+                temp_mat_str = m2_f.read()
+                if ";" in temp_mat_str:
+                    mat2 = parse_matrix(temp_mat_str, "ol")
+                elif ";" not in temp_mat_str:
+                    mat2 = parse_matrix(temp_mat_str, "vr")
+            choice = menu()
+        elif normalized in ("y", "yes"):
+            choice = menu()
+        
+
+        
 
 if __name__ == '__main__':
     main()
