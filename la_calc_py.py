@@ -106,7 +106,7 @@ def mat_eigval_eigvec(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]
     return np.linalg.eig(chosen_mat)
 
 def mat_rr_ge(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[npt.NDArray[np.float64], Literal["ref", "rref"]]:
-    augmented_mat:npt.NDArray[np.float64]|None = np.hstack((mat1, mat2)) if input("Use augmented matrix with mat1 and mat2 for a SoE? [Y/n]").strip().lower() in ("y","yes") else None
+    augmented_mat:npt.NDArray[np.float64]|None = np.hstack((mat1, mat2)) if input("Use augmented matrix with mat1 and mat2 for a system of equations? [Y/n]").strip().lower() in ("y","yes") else None
     result_mat:npt.NDArray[np.float64] = np.array([], dtype=np.float64)
     breakdown_choice:str = input("Gaussian Elimination/Row Echleon Form (REF) or Reduced Row Echleon Form (RREF)? [REF/RREF]").strip().lower()
     mode:str = "ref" if breakdown_choice in ("ref") else "rref" if breakdown_choice in ("rref") else "ref" # defaults to ref mode if not a valid input
