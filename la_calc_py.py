@@ -2,7 +2,8 @@ import numpy as np
 import numpy.typing as npt
 import pathlib as pl
 import sys
-from typing import Literal
+import scipy as sp
+from typing import Literal, Tuple
 
 def menu() -> int:
     
@@ -60,15 +61,20 @@ def matrix_ops(choice:int, mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.flo
             case 6:
                 print(f"Matrix Ranking Result:\n{mat_rank(mat1, mat2)}")
             case 7:
-                mat_rr_ge(mat1, mat2)
+                result, returned_mode = mat_rr_ge(mat1, mat2)
+                print(f"Matrix {returned_mode} Form Result:\n{result}")
             case 8:
-                mat_eigval_eigvec(mat1, mat2)
+                eig_vals, eig_vects = mat_eigval_eigvec(mat1, mat2)
+                print(f"Matrix Eigenvalues and Eigenvectors:\nEVals:{eig_vals}\nEVects:{eig_vects}")
             case 9:
-                mat_lu_decomp(mat1, mat2)
+                P, L, U = mat_lu_decomp(mat1, mat2)
+                print(f"Permutation Matrix: {P}\nLower Triangle Matrix: {L}\nUpper Triangle Matrix: {U}")
             case 10:
-                mat_qr_decomp(mat1, mat2)
+                Q, R = mat_qr_decomp(mat1, mat2)
+                print(f"Orthogonal Matrix: {Q}\nUpper Triangular: {R}")
             case 11:
-                mat_svd(mat1, mat2)
+                U, S, VT = mat_svd(mat1, mat2)
+                print(f"U Orthogonal Matrix: {U}\nS Single Value Array: {S}\nVT Transposition: {VT}")
             case 13:
                 mat1, mat2 = change_matrices(mat1, mat2)
             case _:
@@ -80,6 +86,86 @@ def matrix_ops(choice:int, mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.flo
 #-----------------------------------------------#
 
 #--- SINGLE MATRIX OPERATIONS ---#
+def mat_svd(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    chosen_mat:npt.NDArray[np.float64] = mat1 if parse_which(mat1, mat2) == 1 else mat2
+    U_orthogonal_mat, S_single_vals, VT_transpose = np.linalg.svd(chosen_mat)
+    return U_orthogonal_mat, S_single_vals, VT_transpose
+
+def mat_qr_decomp(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[np.ndarray, np.ndarray]:
+    chosen_mat:npt.NDArray[np.float64] = mat1 if parse_which(mat1, mat2) == 1 else mat2
+    orthogonal_mat, upper_triangular = sp.linalg.qr(chosen_mat)
+    return orthogonal_mat, upper_triangular
+
+def mat_lu_decomp(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    chosen_mat:npt.NDArray[np.float64] = mat1 if parse_which(mat1, mat2) == 1 else mat2
+    permute_mat, lower_tmat, upper_tmat = sp.linalg.lu(chosen_mat)
+    return permute_mat, lower_tmat, upper_tmat
+
+def mat_eigval_eigvec(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[np.ndarray, np.ndarray]:
+    chosen_mat:npt.NDArray[np.float64] = mat1 if parse_which(mat1, mat2) == 1 else mat2
+    return np.linalg.eig(chosen_mat)
+
+def mat_rr_ge(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> Tuple[npt.NDArray[np.float64], Literal["ref", "rref"]]:
+    augmented_mat:npt.NDArray[np.float64]|None = np.hstack((mat1, mat2)) if input("Use augmented matrix with mat1 and mat2 for a SoE? [Y/n]").strip().lower() in ("y","yes") else None
+    result_mat:npt.NDArray[np.float64] = np.array([], dtype=np.float64)
+    breakdown_choice:str = input("Gaussian Elimination/Row Echleon Form (REF) or Reduced Row Echleon Form (RREF)? [REF/RREF]").strip().lower()
+    mode:str = "ref" if breakdown_choice in ("ref") else "rref" if breakdown_choice in ("rref") else "ref" # defaults to ref mode if not a valid input
+    if isinstance(augmented_mat, (np.float64)):
+        result_mat = ref_rref(augmented_mat, mode)
+    else: 
+        chosen_mat = mat1 if parse_which(mat1, mat2) == 1 else mat2
+        result_mat = ref_rref(chosen_mat, mode)
+    
+    return result_mat, mode
+
+def ref_rref(mat:npt.NDArray[np.float64], mode:str) -> npt.NDArray[np.float64]:
+    return_mat:npt.NDArray[np.float64] = np.array([], dtype=np.float64)
+    match mode:
+        case "ref":
+            return_mat = gauss_elim(mat)
+        case "rref":
+            return_mat = red_gauss_elim(mat)
+    return return_mat
+
+def red_gauss_elim(mat:npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    mat = gauss_elim(mat)
+    rows, cols = mat.shape #cols wont be used in this case
+
+    #back substitution to get RREF
+    for i in reversed(range(rows)):
+        #find pivot
+        pivot_cols = np.where(np.abs(mat[i]) > 1e-10)[0]
+        if pivot_cols.size == 0:
+            continue
+        pivot_col = pivot_cols[0]
+
+        #get rid of rows above
+        for j in range(i):
+            mat[j] -= mat[j, pivot_col] * mat[i]
+    return mat
+
+def gauss_elim(mat:npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    mat = mat.astype(np.float64)
+    rows, cols = mat.shape
+
+    for i in range(min(rows,cols)):
+        #finding pivot
+        max_row = np.argmax(np.abs(mat[i:, i])) + i
+        if mat[max_row, i] == 0:
+            continue #no need piv-swap
+
+        #if need piv-swap, swap current row with max-pivot row
+        mat[[i, max_row]] = mat[[max_row, i]]
+
+        #normalize pivot row
+        mat[i] = mat[i] / mat[i, i]
+
+        #get rid of lower, further below, rows
+        for j in range(i+1, rows):
+            mat[j] -= mat[j, i] * mat[i]
+
+    return mat
+
 def mat_rank(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> int:
     selected_mat:npt.NDArray[np.float64] = np.array([], dtype=np.float64) 
     match parse_which(mat1, mat2):
