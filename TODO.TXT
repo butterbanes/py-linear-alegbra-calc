@@ -1,0 +1,10 @@
+/.TODO./
+1. Add a function to allow for in-program input
+    - if user doesn't have a file to parse, give them the option
+        to enter a matrix manually index by index
+            - after they finish entering their manual matrix, there
+                would be a "are you sure" screen to double check their
+                values
+                    - if their values aren't what they meant to put in,
+                        the program will ask which position in the matrix
+                        needs to be changed
