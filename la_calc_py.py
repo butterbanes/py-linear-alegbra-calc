@@ -254,7 +254,7 @@ def mat_inverse(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> n
 #--- BASIC MATRIX ARITHMETIC ---#
 def mat_add(mat1: npt.NDArray[np.float64], mat2: npt.NDArray[np.float64]) -> npt.NDArray[np.float128]:
     if mat1.size != mat2.size:
-        print("ERR: to perform addition  on two matrices, they must be the same size")
+        print("ERR: to perform addition on two matrices, they must be the same size")
         sys.exit(1)
 
     mat_add_res:npt.NDArray[np.float128] = np.add(mat1, mat2)
@@ -329,20 +329,20 @@ def change_matrices(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]):
 
 def main():
     mat_templ_example()
-    print("Please enter your two matrix file names that are IN ROW MAJOR")
-    mat1_fn:str = input("Matrix #1 File Name: ")
-    mat2_fn:str = input("Matrix #2 File Name: ")
-    
+    arg_mats:list[str]  = sys.argv
+    if len(arg_mats) != 3:
+        raise Exception("ERR: you must provide two matrix .txt files as arguments")
+
     #populate the actual matrices via file contents
     mat1:npt.NDArray[np.float64] = npt.NDArray[np.float64](np.array([], dtype=object))
     mat2:npt.NDArray[np.float64] = npt.NDArray[np.float64](np.array([], dtype=object))
-    with open(mat1_fn) as m1_f:
+    with open(arg_mats[1]) as m1_f:
         temp_mat_str = m1_f.read()
         if ";" in temp_mat_str:
             mat1 = parse_matrix_str(temp_mat_str, "ol")
         elif ";" not in temp_mat_str:
             mat1 = parse_matrix_str(temp_mat_str, "vr")
-    with open(mat2_fn) as m2_f:
+    with open(arg_mats[2]) as m2_f:
         temp_mat_str = m2_f.read()
         if ";" in temp_mat_str:
             mat2 = parse_matrix_str(temp_mat_str, "ol")
