@@ -223,7 +223,7 @@ def mat_inverse(mat1:npt.NDArray[np.float64], mat2:npt.NDArray[np.float64]) -> n
                 b_mat = mat1
         return np.array((np.linalg.solve(A_mat, b_mat)), dtype=np.float64)
     
-    #Jumps here on False
+    #jumps here on False
     match parse_which(mat1, mat2):
         case 1:
             A_mat = mat1
@@ -331,7 +331,7 @@ def main():
     mat_templ_example()
     arg_mats:list[str]  = sys.argv
     if len(arg_mats) != 3:
-        raise Exception("ERR: you must provide two matrix .txt files as arguments")
+        raise Exception("USAGE: python3 la_calc_py.py some_matrix_1.txt some_matrix_2.txt")
 
     #populate the actual matrices via file contents
     mat1:npt.NDArray[np.float64] = npt.NDArray[np.float64](np.array([], dtype=object))
